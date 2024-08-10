@@ -1,5 +1,9 @@
 console.log('Popup script initialized');
 
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Popup DOM fully loaded');
+});
+
 document.getElementById('copyJson').addEventListener('click', async () => {
   console.log('Copy JSON button clicked');
   const statusElement = document.getElementById('status');
@@ -8,10 +12,11 @@ document.getElementById('copyJson').addEventListener('click', async () => {
   try {
     console.log('Requesting conversation data');
     const response = await chrome.runtime.sendMessage({action: "getConversationData"});
+    console.log('Response received:', response);
     if (!response.conversationData) {
       throw new Error('No conversation data available');
     }
-    console.log('Conversation data received');
+    console.log('Conversation data received:', JSON.stringify(response.conversationData).substring(0, 100) + '...');
 
     const jsonString = JSON.stringify(response.conversationData, null, 2);
     await navigator.clipboard.writeText(jsonString);
@@ -31,10 +36,11 @@ document.getElementById('createGist').addEventListener('click', async () => {
   try {
     console.log('Requesting conversation data');
     const response = await chrome.runtime.sendMessage({action: "getConversationData"});
+    console.log('Response received:', response);
     if (!response.conversationData) {
       throw new Error('No conversation data available');
     }
-    console.log('Conversation data received');
+    console.log('Conversation data received:', JSON.stringify(response.conversationData).substring(0, 100) + '...');
 
     const markdown = convertToMarkdown(response.conversationData);
     console.log('Markdown converted');
@@ -60,3 +66,6 @@ async function createGitHubGist(content) {
   // This will require OAuth implementation or storing a GitHub token
   return 'https://gist.github.com/example';
 }
+
+// Log when the popup script is loaded
+console.log('Popup script loaded and running');
