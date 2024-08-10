@@ -48,10 +48,112 @@ Note: this has not been thoroughly tested yet!
 
 ## How It Works
 
-1. The extension monitors network requests on claude.ai, capturing conversation data from specific API endpoints.
-2. When you interact with the popup, it retrieves this captured data.
-3. For Markdown conversion, it formats the conversation with timestamps, roles (Human/Assistant), and includes any attachments or files.
-4. When creating a Gist, it uses your GitHub token to authenticate and create a private Gist via the GitHub API.
+The extension works by intercepting network requests, processing conversation data, and interacting with the GitHub API. Here's a detailed breakdown of its functionality:
+
+### 1. Capturing Conversation Data
+
+The extension uses a background script to monitor network requests on claude.ai. It captures conversation data from specific API endpoints:
+
+```javascript
+chrome.webRequest.onBeforeRequest.addListener(
+  function (details) {
+    if (
+      !isExtensionFetch &&
+      details.url.includes("api.claude.ai/api/organizations/") &&
+      details.url.includes("/chat_conversations/") &&
+      details.method === "GET"
+    ) {
+      // Fetch and store conversation data
+      fetch(details.url, {
+        method: "GET",
+        headers: details.requestHeaders.reduce((acc, header) => {
+          acc[header.name] = header.value;
+          return acc;
+        }, {}),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          conversationData = data;
+        });
+    }
+  },
+  { urls: ["https://api.claude.ai/*"] },
+  ["requestBody"]
+);
+```
+
+### 2. Converting to Markdown
+
+When the user requests a Markdown conversion, the extension processes the captured conversation data:
+
+```javascript
+function convertToMarkdown(conversationData) {
+  const conversationName = conversationData.name || "Untitled Conversation";
+  let markdown = `# ${conversationName}\n\n`;
+
+  conversationData.chat_messages.forEach((message) => {
+    const role = message.sender === 'human' ? 'Human' : 'Assistant';
+    const timestamp = new Date(message.created_at).toLocaleString();
+
+    markdown += `## ${role} (${timestamp})\n\n`;
+    markdown += `${message.text}\n\n`;
+
+    // Add attachments and files if present
+    // ...
+  });
+
+  return markdown;
+}
+```
+
+### 3. Creating GitHub Gists
+
+When the user clicks "Create Gist", the extension uses the GitHub API to create a new Gist:
+
+```javascript
+async function createGitHubGist(content, conversationName) {
+  const { githubToken } = await chrome.storage.sync.get('githubToken');
+  
+  const fileName = `${conversationName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+
+  const response = await fetch('https://api.github.com/gists', {
+    method: 'POST',
+    headers: {
+      'Authorization': `token ${githubToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      description: `Claude Conversation: ${conversationName}`,
+      public: false,
+      files: {
+        [fileName]: {
+          content: content
+        }
+      }
+    })
+  });
+
+  const data = await response.json();
+  return data.html_url;
+}
+```
+
+### 4. User Interface
+
+The extension's popup provides a simple interface for users to interact with these features:
+
+```html
+<body>
+  <h2>Claude to GitHub Gist</h2>
+  <button id="copyJson">Copy JSON</button>
+  <button id="copyMarkdown">Copy Markdown</button>
+  <button id="createGist">Create Gist</button>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+```
+
+Each button triggers the corresponding action in the `popup.js` file.
 
 ## Troubleshooting
 
