@@ -1,4 +1,5 @@
 let conversationData = null;
+let isExtensionFetch = false;
 
 console.log("Background script initialized");
 
@@ -6,11 +7,15 @@ chrome.webRequest.onBeforeRequest.addListener(
   function (details) {
     console.log("onBeforeRequest listener triggered:", details.url);
     if (
+      !isExtensionFetch &&
       details.url.includes("api.claude.ai/api/organizations/") &&
       details.url.includes("/chat_conversations/") &&
       details.method === "GET"
     ) {
       console.log("Matched chat conversation request:", details.url);
+
+      // Set the flag to true before making the fetch request
+      isExtensionFetch = true;
 
       // Use fetch to get the response data
       fetch(details.url, {
@@ -30,9 +35,13 @@ chrome.webRequest.onBeforeRequest.addListener(
         })
         .catch((error) => {
           console.error("Error fetching conversation data:", error);
+        })
+        .finally(() => {
+          // Reset the flag after the fetch is complete
+          isExtensionFetch = false;
         });
     } else {
-      console.log("URL did not match criteria");
+      console.log("URL did not match criteria or is extension fetch");
     }
   },
   { urls: ["https://api.claude.ai/*"] },
