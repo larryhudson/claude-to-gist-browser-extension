@@ -2,34 +2,41 @@ let conversationData = null;
 
 console.log("Background script initialized");
 
-chrome.webRequest.onCompleted.addListener(
+chrome.webRequest.onBeforeRequest.addListener(
   function (details) {
-    console.log("onCompleted listener triggered:", details.url);
+    console.log("onBeforeRequest listener triggered:", details.url);
     if (
       details.url.includes("api.claude.ai/api/organizations/") &&
       details.url.includes("/chat_conversations/") &&
       details.method === "GET"
     ) {
       console.log("Matched chat conversation request:", details.url);
-      chrome.webRequest.filterResponseData(details.requestId).ondata = (event) => {
-        const decoder = new TextDecoder("utf-8");
-        const str = decoder.decode(event.data, {stream: true});
-        try {
-          conversationData = JSON.parse(str);
-          console.log(
-            "Conversation data captured successfully:",
-            JSON.stringify(conversationData).substring(0, 100) + "...",
-          );
-        } catch (error) {
-          console.error("Error parsing conversation data:", error);
-        }
-      };
+      
+      // Use fetch to get the response data
+      fetch(details.url, {
+        method: 'GET',
+        headers: details.requestHeaders.reduce((acc, header) => {
+          acc[header.name] = header.value;
+          return acc;
+        }, {})
+      })
+      .then(response => response.json())
+      .then(data => {
+        conversationData = data;
+        console.log(
+          "Conversation data captured successfully:",
+          JSON.stringify(conversationData).substring(0, 100) + "...",
+        );
+      })
+      .catch(error => {
+        console.error("Error fetching conversation data:", error);
+      });
     } else {
       console.log("URL did not match criteria");
     }
   },
   { urls: ["https://api.claude.ai/*"] },
-  ["responseHeaders"]
+  ["requestHeaders"]
 );
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
