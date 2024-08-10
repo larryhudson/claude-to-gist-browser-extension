@@ -56,8 +56,37 @@ document.getElementById('createGist').addEventListener('click', async () => {
 
 function convertToMarkdown(conversationData) {
   console.log('Converting to Markdown');
-  // TODO: Implement conversion from JSON to Markdown
-  return JSON.stringify(conversationData, null, 2);
+  if (!conversationData || !conversationData.chat_messages) {
+    return "No conversation data available";
+  }
+
+  let markdown = "# Claude Conversation\n\n";
+
+  conversationData.chat_messages.forEach((message, index) => {
+    const role = message.sender === 'human' ? 'Human' : 'Assistant';
+    const timestamp = new Date(message.created_at).toLocaleString();
+
+    markdown += `## ${role} (${timestamp})\n\n`;
+    markdown += `${message.text}\n\n`;
+
+    if (message.attachments && message.attachments.length > 0) {
+      markdown += "### Attachments:\n";
+      message.attachments.forEach(attachment => {
+        markdown += `- ${attachment.file_name}\n`;
+      });
+      markdown += "\n";
+    }
+
+    if (message.files && message.files.length > 0) {
+      markdown += "### Files:\n";
+      message.files.forEach(file => {
+        markdown += `- ${file.file_name}\n`;
+      });
+      markdown += "\n";
+    }
+  });
+
+  return markdown;
 }
 
 async function createGitHubGist(content) {
