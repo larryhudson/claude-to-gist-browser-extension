@@ -11,32 +11,32 @@ chrome.webRequest.onBeforeRequest.addListener(
       details.method === "GET"
     ) {
       console.log("Matched chat conversation request:", details.url);
-      
+
       // Use fetch to get the response data
       fetch(details.url, {
-        method: 'GET',
+        method: "GET",
         headers: details.requestHeaders.reduce((acc, header) => {
           acc[header.name] = header.value;
           return acc;
-        }, {})
+        }, {}),
       })
-      .then(response => response.json())
-      .then(data => {
-        conversationData = data;
-        console.log(
-          "Conversation data captured successfully:",
-          JSON.stringify(conversationData).substring(0, 100) + "...",
-        );
-      })
-      .catch(error => {
-        console.error("Error fetching conversation data:", error);
-      });
+        .then((response) => response.json())
+        .then((data) => {
+          conversationData = data;
+          console.log(
+            "Conversation data captured successfully:",
+            JSON.stringify(conversationData).substring(0, 100) + "...",
+          );
+        })
+        .catch((error) => {
+          console.error("Error fetching conversation data:", error);
+        });
     } else {
       console.log("URL did not match criteria");
     }
   },
   { urls: ["https://api.claude.ai/*"] },
-  ["requestHeaders"]
+  ["requestHeaders"],
 );
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
