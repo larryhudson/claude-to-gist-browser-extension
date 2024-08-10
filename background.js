@@ -25,4 +25,5 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('Sending conversation data');
     sendResponse({conversationData: conversationData});
   }
+  return true; // Indicates that the response is sent asynchronously
 });
