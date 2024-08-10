@@ -115,9 +115,35 @@ function convertToMarkdown(conversationData) {
 
 async function createGitHubGist(content) {
   console.log('Creating GitHub Gist');
-  // TODO: Implement GitHub Gist creation
-  // This will require OAuth implementation or storing a GitHub token
-  return 'https://gist.github.com/example';
+  const { githubToken } = await chrome.storage.sync.get('githubToken');
+  
+  if (!githubToken) {
+    throw new Error('GitHub token not found. Please set it in the extension options.');
+  }
+
+  const response = await fetch('https://api.github.com/gists', {
+    method: 'POST',
+    headers: {
+      'Authorization': `token ${githubToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      description: 'Claude Conversation',
+      public: false,
+      files: {
+        'claude_conversation.md': {
+          content: content
+        }
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to create gist: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.html_url;
 }
 
 // Log when the popup script is loaded
