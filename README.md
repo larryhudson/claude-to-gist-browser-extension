@@ -6,6 +6,8 @@ This project was inspired by Simon Willison's tool that turns JSON into Markdown
 
 This project was developed using Aider, an AI pair programming tool: https://aider.chat/
 
+Note: this has not been thoroughly tested yet!
+
 ## Features
 
 - Runs on claude.ai
