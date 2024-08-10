@@ -84,7 +84,8 @@ function convertToMarkdown(conversationData) {
     return "No conversation data available";
   }
 
-  let markdown = "# Claude Conversation\n\n";
+  const conversationName = conversationData.name || "Untitled Conversation";
+  let markdown = `# ${conversationName}\n\n`;
 
   conversationData.chat_messages.forEach((message, index) => {
     const role = message.sender === 'human' ? 'Human' : 'Assistant';
