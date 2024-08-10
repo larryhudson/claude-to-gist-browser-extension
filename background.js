@@ -15,10 +15,10 @@ chrome.webRequest.onBeforeRequest.addListener(
       // Use fetch to get the response data
       fetch(details.url, {
         method: "GET",
-        headers: details.requestHeaders.reduce((acc, header) => {
+        headers: details.requestHeaders ? details.requestHeaders.reduce((acc, header) => {
           acc[header.name] = header.value;
           return acc;
-        }, {}),
+        }, {}) : {},
       })
         .then((response) => response.json())
         .then((data) => {
@@ -36,7 +36,7 @@ chrome.webRequest.onBeforeRequest.addListener(
     }
   },
   { urls: ["https://api.claude.ai/*"] },
-  ["requestHeaders"],
+  ["requestBody"]
 );
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
