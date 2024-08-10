@@ -66,9 +66,10 @@ document.getElementById('createGist').addEventListener('click', async () => {
     }
     console.log('Conversation data received:', JSON.stringify(response.conversationData).substring(0, 100) + '...');
 
+    const conversationName = response.conversationData.name || "Untitled Conversation";
     const markdown = convertToMarkdown(response.conversationData);
     console.log('Markdown converted');
-    const gistUrl = await createGitHubGist(markdown);
+    const gistUrl = await createGitHubGist(markdown, conversationName);
     console.log('Gist created:', gistUrl);
     
     statusElement.textContent = `Gist created: ${gistUrl}`;
@@ -114,13 +115,15 @@ function convertToMarkdown(conversationData) {
   return markdown;
 }
 
-async function createGitHubGist(content) {
+async function createGitHubGist(content, conversationName) {
   console.log('Creating GitHub Gist');
   const { githubToken } = await chrome.storage.sync.get('githubToken');
   
   if (!githubToken) {
     throw new Error('GitHub token not found. Please set it in the extension options.');
   }
+
+  const fileName = `${conversationName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
 
   const response = await fetch('https://api.github.com/gists', {
     method: 'POST',
@@ -129,10 +132,10 @@ async function createGitHubGist(content) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      description: 'Claude Conversation',
+      description: `Claude Conversation: ${conversationName}`,
       public: false,
       files: {
-        'claude_conversation.md': {
+        [fileName]: {
           content: content
         }
       }
