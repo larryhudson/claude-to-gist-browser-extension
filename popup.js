@@ -1,3 +1,21 @@
+document.getElementById('copyJson').addEventListener('click', async () => {
+  const statusElement = document.getElementById('status');
+  statusElement.textContent = 'Copying JSON...';
+
+  try {
+    const response = await chrome.runtime.sendMessage({action: "getConversationData"});
+    if (!response.conversationData) {
+      throw new Error('No conversation data available');
+    }
+
+    const jsonString = JSON.stringify(response.conversationData, null, 2);
+    await navigator.clipboard.writeText(jsonString);
+    statusElement.textContent = 'JSON copied to clipboard!';
+  } catch (error) {
+    statusElement.textContent = `Error: ${error.message}`;
+  }
+});
+
 document.getElementById('createGist').addEventListener('click', async () => {
   const statusElement = document.getElementById('status');
   statusElement.textContent = 'Creating gist...';
