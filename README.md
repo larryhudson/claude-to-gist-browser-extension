@@ -2,6 +2,8 @@
 
 This browser extension allows you to easily create GitHub Gists from your conversations with Claude AI. It captures the conversation data, converts it to Markdown, and creates a private GitHub Gist with a single click.
 
+This project was inspired by Simon Willison's tool that turns JSON into Markdown using an Observable notebook: https://simonwillison.net/2024/Aug/8/convert-claude-json-to-markdown/
+
 ## Features
 
 - Runs on claude.ai
