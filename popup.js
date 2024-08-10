@@ -28,6 +28,30 @@ document.getElementById('copyJson').addEventListener('click', async () => {
   }
 });
 
+document.getElementById('copyMarkdown').addEventListener('click', async () => {
+  console.log('Copy Markdown button clicked');
+  const statusElement = document.getElementById('status');
+  statusElement.textContent = 'Copying Markdown...';
+
+  try {
+    console.log('Requesting conversation data');
+    const response = await chrome.runtime.sendMessage({action: "getConversationData"});
+    console.log('Response received:', response);
+    if (!response.conversationData) {
+      throw new Error('No conversation data available');
+    }
+    console.log('Conversation data received:', JSON.stringify(response.conversationData).substring(0, 100) + '...');
+
+    const markdown = convertToMarkdown(response.conversationData);
+    await navigator.clipboard.writeText(markdown);
+    console.log('Markdown copied to clipboard');
+    statusElement.textContent = 'Markdown copied to clipboard!';
+  } catch (error) {
+    console.error('Error copying Markdown:', error);
+    statusElement.textContent = `Error: ${error.message}`;
+  }
+});
+
 document.getElementById('createGist').addEventListener('click', async () => {
   console.log('Create Gist button clicked');
   const statusElement = document.getElementById('status');
