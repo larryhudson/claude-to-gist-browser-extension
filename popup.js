@@ -72,7 +72,11 @@ document.getElementById('createGist').addEventListener('click', async () => {
     const gistUrl = await createGitHubGist(markdown, conversationName);
     console.log('Gist created:', gistUrl);
     
-    statusElement.textContent = `Gist created: ${gistUrl}`;
+    // Copy Gist URL to clipboard
+    await navigator.clipboard.writeText(gistUrl);
+    console.log('Gist URL copied to clipboard');
+    
+    statusElement.textContent = `Gist created and URL copied to clipboard: ${gistUrl}`;
   } catch (error) {
     console.error('Error creating gist:', error);
     statusElement.textContent = `Error: ${error.message}`;
